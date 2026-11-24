@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CÍRCULO PERFECTO // Desafío de Precisión</title>
+    <style>
+        :root {
+            --bg: #090c15;
+            --surface: #111726;
+            --surface-card: #161e31;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --line: #222f49;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.25);
+            --gold: #fbbf24;
+            --ok: #22c55e;
+            --bad: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100dvh;
+            background: #06080f;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(17, 23, 38, 0.95);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.99); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .pill {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            padding: 4px 12px;
+            border-radius: 999px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            line-height: 1.15;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #0a0e1a;
+            color: var(--text);
+            font-size: 1.05rem;
+            outline: none;
+            transition: all 0.2s ease;
+            margin-bottom: 14px;
+            user-select: text;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0284c7);
+            color: #04101c;
+            box-shadow: 0 8px 20px rgba(56, 189, 248, 0.25);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--muted);
+            border: 1px solid var(--line);
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            border-radius: 10px;
+            width: auto;
+        }
+
+        .btn-whatsapp {
+            background: #22c55e;
+            color: #042f13;
+            margin-top: 10px;
+            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.2);
+        }
+
+        .leaderboard-box {
+            margin-top: 20px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .lb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .lb-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        .lb-count {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .lb-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--line) transparent;
+        }
+
+        .lb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0b0f1b;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .lb-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .lb-pos {
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--muted);
+            width: 20px;
+        }
+
+        .lb-row:nth-child(1) .lb-pos { color: #facc15; }
+        .lb-row:nth-child(2) .lb-pos { color: #cbd5e1; }
+        .lb-row:nth-child(3) .lb-pos { color: #d97706; }
+
+        .lb-name {
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lb-score {
+            font-weight: 800;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .lb-empty {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+            padding: 16px 0;
+        }
+
+        /* HUD & Área de Juego */
+        .game-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .player-chip {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            padding: 8px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 170px;
+        }
+
+        .best-chip {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--gold);
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .canvas-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: #070a14;
+            touch-action: none;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .result-panel {
+            margin-top: 14px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+        }
+
+        .score-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+
+        .big-pct {
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+
+        .status-msg {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .record-tag {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .record-new {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .record-kept {
+            background: rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .mini-lb {
+            margin-top: 14px;
+        }
+
+        .mini-lb .lb-list {
+            max-height: 120px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+    <!-- PANTALLA 1: REGISTRO Y TABLA -->
+    <section id="screen-login" class="screen active">
+        <span class="pill">Ranking Global en Vivo</span>
+        <h1>CÍRCULO PERFECTO</h1>
+        <p class="sub">
+            Traza un círculo de un solo movimiento continuo a pulso. Sin guías ni trampas. Solo tu mejor precisión quedará en el ranking.
+        </p>
+
+        <form id="login-form">
+            <label for="username-input">Nombre o Apodo</label>
+            <input type="text" id="username-input" placeholder="Tu nombre..." maxlength="18" autocomplete="off" required>
+            <button type="submit" id="enter-btn" class="btn btn-primary">Entrar a Dibujar</button>
+        </form>
+
+        <div class="leaderboard-box">
+            <div class="lb-header">
+                <span class="lb-title">Top Jugadores</span>
+                <span class="lb-count" id="login-count">Cargando...</span>
+            </div>
+            <div class="lb-list" id="login-leaderboard"></div>
+        </div>
+    </section>
+
+    <!-- PANTALLA 2: LIENZO LIMPIO DE JUEGO -->
+    <section id="screen-game" class="screen">
+        <div class="game-top">
+            <div class="player-chip" id="hud-player">Jugador</div>
+            <div class="best-chip" id="hud-best">Récord: --%</div>
+            <button type="button" class="btn btn-ghost" onclick="goToLogin()">Salir</button>
+        </div>
+
+        <div class="canvas-wrap">
+            <canvas id="draw-canvas"></canvas>
+        </div>
+
+        <div class="result-panel">
+            <div class="score-line">
+                <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); font-weight:700;">Precisión</span>
+                <span class="big-pct" id="score-pct">--%</span>
+            </div>
+            <p class="status-msg" id="score-feedback">
+                Mantén presionado y gira en 360° alrededor del centro sin soltar.
+            </p>
+            <div id="record-badge-wrap"></div>
+            <button type="button" id="share-btn" class="btn btn-whatsapp" style="display:none;" onclick="copyRecordMessage()">
+                Compartir récord en WhatsApp
+            </button>
+        </div>
+
+        <div class="leaderboard-box mini-lb">
+            <div class="lb-header">
+                <span class="lb-title">Ranking en vivo</span>
+                <span class="lb-count" id="game-count">Cargando...</span>
+            </div>
+            <div class="lb-list" id="game-leaderboard"></div>
+        </div>
+    </section>
+</div>
+
+<script>
+    const SUPABASE_URL = "https://aznwokwzyartmtjjafpx.supabase.co";
+    const SUPABASE_API_KEY = "sb_publishable_JwxdrdV8Y90y2zAaZznzaA_snV8cLYh";
+
+    const headers = {
+        "apikey": SUPABASE_API_KEY,
+        "Authorization": `Bearer ${SUPABASE_API_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+    };
+
+    const loginForm = document.getElementById("login-form");
+    const enterBtn = document.getElementById("enter-btn");
+    const usernameInput = document.getElementById("username-input");
+    const loginLeaderboardEl = document.getElementById("login-leaderboard");
+    const gameLeaderboardEl = document.getElementById("game-leaderboard");
+    const loginCountEl = document.getElementById("login-count");
+    const gameCountEl = document.getElementById("game-count");
+
+    const canvas = document.getElementById("draw-canvas");
+    const ctx = canvas.getContext("2d");
+
+    let currentUserKey = "";
+    let currentUserDisplay = "";
+    let isDrawing = false;
+    let points = [];
+    let lastAttemptScore = null;
+    let cachedBestScore = null;
+
+    function normalizeName(name) {
+        return name.trim().replace(/\s+/g, " ").toLowerCase();
+    }
+
+    async function fetchLeaderboard() {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/circle_records?select=user_key,display_name,best_score&order=best_score.desc&limit=50`,
+            { headers }
+        );
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || `Error ${res.status}`);
+        }
+        return await res.json();
+    }
+
+    async function fetchUserRecord(key) {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/circle_records?user_key=eq.${encodeURIComponent(key)}&select=user_key,display_name,best_score`,
+            { headers }
+        );
+        if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || `Error ${res.status}`);
+        }
+        const data = await res.json();
+        return data.length > 0 ? data[0] : null;
+    }
+
+    async function submitScoreToSupabase(key, displayName, score) {
+        const existing = await fetchUserRecord(key);
+
+        if (!existing) {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/circle_records`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    user_key: key,
+                    display_name: displayName,
+                    best_score: score,
+                    updated_at: new Date().toISOString()
+                })
+            });
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || `Error ${res.status}`);
+            }
+            return { isNewRecord: true, bestScore: score };
+        }
+
+        const prevBest = Number(existing.best_score);
+        if (score > prevBest) {
+            const res = await fetch(
+                `${SUPABASE_URL}/rest/v1/circle_records?user_key=eq.${encodeURIComponent(key)}`,
+                {
+                    method: "PATCH",
+                    headers,
+                    body: JSON.stringify({
+                        display_name: displayName,
+                        best_score: score,
+                        updated_at: new Date().toISOString()
+                    })
+                }
+            );
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || `Error ${res.status}`);
+            }
+            return { isNewRecord: true, bestScore: score };
+        }
+
+        return { isNewRecord: false, bestScore: prevBest };
+    }
+
+    async function refreshLeaderboards() {
+        try {
+            const sorted = await fetchLeaderboard();
+            renderLeaderboardInto(loginLeaderboardEl, loginCountEl, sorted);
+            renderLeaderboardInto(gameLeaderboardEl, gameCountEl, sorted);
+        } catch (err) {
+            const msg = `<div class="lb-empty">No se pudo cargar el ranking. Revisa la tabla <b>circle_records</b> y las políticas RLS en Supabase.</div>`;
+            loginCountEl.textContent = "Sin conexión";
+            gameCountEl.textContent = "Sin conexión";
+            loginLeaderboardEl.innerHTML = msg;
+            gameLeaderboardEl.innerHTML = msg;
+            console.error("Supabase leaderboard error:", err);
+        }
+    }
+
+    function renderLeaderboardInto(container, countEl, sorted) {
+        countEl.textContent = `${sorted.length} ${sorted.length === 1 ? "jugador" : "jugadores"}`;
+
+        if (sorted.length === 0) {
+            container.innerHTML = `<div class="lb-empty">Sin marcas aún. ¡Haz tu primer trazo!</div>`;
+            return;
+        }
+
+        container.innerHTML = sorted.map((entry, index) => {
+            const isMe = currentUserKey && entry.user_key === currentUserKey;
+            return `
+                <div class="lb-row" style="${isMe ? "border-color: rgba(56,189,248,0.4);" : ""}">
+                    <div class="lb-left">
+                        <span class="lb-pos">#${index + 1}</span>
+                        <span class="lb-name">${escapeHtml(entry.display_name)}${isMe ? " (tú)" : ""}</span>
+                    </div>
+                    <span class="lb-score">${Number(entry.best_score).toFixed(1)}%</span>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function showScreen(id) {
+        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+    }
+
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const raw = usernameInput.value.trim().replace(/\s+/g, " ");
+        if (!raw) return;
+
+        enterBtn.disabled = true;
+        enterBtn.textContent = "Cargando cuenta...";
+
+        currentUserDisplay = raw;
+        currentUserKey = normalizeName(raw);
+
+        let existing = null;
+        try {
+            existing = await fetchUserRecord(currentUserKey);
+        } catch (err) {
+            console.error("Error consultando usuario:", err);
+        }
+
+        cachedBestScore = existing ? Number(existing.best_score) : null;
+        document.getElementById("hud-player").textContent = currentUserDisplay;
+        updateBestHud(cachedBestScore);
+
+        lastAttemptScore = null;
+        document.getElementById("score-pct").textContent = "--%";
+        document.getElementById("score-pct").style.color = "var(--text)";
+        document.getElementById("score-feedback").textContent = cachedBestScore !== null
+            ? `Cuenta cargada. Récord actual: ${cachedBestScore.toFixed(1)}%. Solo se guardará si lo superas.`
+            : "Completa un trazo circular para registrar tu récord.";
+        document.getElementById("record-badge-wrap").innerHTML = "";
+        document.getElementById("share-btn").style.display = "none";
+
+        enterBtn.disabled = false;
+        enterBtn.textContent = "Entrar a Dibujar";
+
+        showScreen("screen-game");
+        resizeCanvas();
+        refreshLeaderboards();
+    });
+
+    function goToLogin() {
+        usernameInput.value = currentUserDisplay;
+        refreshLeaderboards();
+        showScreen("screen-login");
+    }
+
+    function updateBestHud(best) {
+        document.getElementById("hud-best").textContent =
+            best !== null && best !== undefined ? `Récord: ${Number(best).toFixed(1)}%` : "Récord: --%";
+    }
+
+    function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * dpr);
+        canvas.height = Math.round(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawCleanBoard();
+    }
+
+    // Lienzo totalmente limpio: SIN GUÍAS CIRCULARES
+    function drawCleanBoard() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function getCanvasPos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    function startStroke(evt) {
+        if (evt.cancelable) evt.preventDefault();
+        isDrawing = true;
+        points = [getCanvasPos(evt)];
+        drawCleanBoard();
+    }
+
+    function moveStroke(evt) {
+        if (!isDrawing) return;
+        if (evt.cancelable) evt.preventDefault();
+        const pos = getCanvasPos(evt);
+        const last = points[points.length - 1];
+        if (Math.hypot(pos.x - last.x, pos.y - last.y) < 2) return;
+
+        points.push(pos);
+        renderCurrentStroke();
+    }
+
+    function renderCurrentStroke() {
+        drawCleanBoard();
+        if (points.length < 2) return;
+
+        ctx.save();
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowColor = "rgba(56, 189, 248, 0.5)";
+        ctx.shadowBlur = 8;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#fbbf24";
+        ctx.beginPath();
+        ctx.arc(points[0].x, points[0].y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    async function endStroke(evt) {
+        if (!isDrawing) return;
+        if (evt && evt.cancelable) evt.preventDefault();
+        isDrawing = false;
+
+        const evaluation = evaluateCircle(points);
+
+        const pctEl = document.getElementById("score-pct");
+        const fbEl = document.getElementById("score-feedback");
+        const badgeWrap = document.getElementById("record-badge-wrap");
+        const shareBtn = document.getElementById("share-btn");
+
+        if (!evaluation.valid) {
+            pctEl.textContent = "0.0%";
+            pctEl.style.color = "var(--bad)";
+            fbEl.textContent = evaluation.reason;
+            badgeWrap.innerHTML = `<span class="record-tag record-kept">Intento no válido</span>`;
+            shareBtn.style.display = "none";
+            renderCurrentStroke();
+            return;
+        }
+
+        const score = evaluation.score;
+        lastAttemptScore = score;
+
+        pctEl.textContent = `${score.toFixed(1)}%`;
+        pctEl.style.color = score >= 88 ? "var(--ok)" : score >= 65 ? "var(--accent)" : "var(--gold)";
+        fbEl.textContent = evaluation.reason;
+        badgeWrap.innerHTML = `<span class="record-tag record-kept">Guardando en el ranking...</span>`;
+        shareBtn.style.display = "flex";
+        renderCurrentStroke();
+
+        try {
+            const result = await submitScoreToSupabase(currentUserKey, currentUserDisplay, score);
+            cachedBestScore = Number(result.bestScore);
+            updateBestHud(cachedBestScore);
+
+            if (result.isNewRecord) {
+                badgeWrap.innerHTML = `<span class="record-tag record-new">¡Nuevo récord personal (${cachedBestScore.toFixed(1)}%)!</span>`;
+            } else {
+                badgeWrap.innerHTML = `<span class="record-tag record-kept">No supera tu récord de ${cachedBestScore.toFixed(1)}% · Sin cambios</span>`;
+            }
+
+            await refreshLeaderboards();
+        } catch (err) {
+            console.error("Error guardando récord:", err);
+            badgeWrap.innerHTML = `<span class="record-tag record-kept">Error al guardar en Supabase</span>`;
+        }
+    }
+
+    function evaluateCircle(pts) {
+        if (!pts || pts.length < 24) {
+            return { valid: false, reason: "Trazo corto. Haz un círculo completo sin soltar la pantalla." };
+        }
+
+        let pathLength = 0;
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (let i = 0; i < pts.length; i++) {
+            const p = pts[i];
+            if (p.x < minX) minX = p.x;
+            if (p.x > maxX) maxX = p.x;
+            if (p.y < minY) minY = p.y;
+            if (p.y > maxY) maxY = p.y;
+            if (i > 0) pathLength += Math.hypot(p.x - pts[i - 1].x, p.y - pts[i - 1].y);
+        }
+
+        const span = Math.max(maxX - minX, maxY - minY);
+        if (span < 50 || pathLength < 140) {
+            return { valid: false, reason: "Círculo demasiado pequeño." };
+        }
+
+        const cx = pts.reduce((acc, p) => acc + p.x, 0) / pts.length;
+        const cy = pts.reduce((acc, p) => acc + p.y, 0) / pts.length;
+
+        const radii = pts.map(p => Math.hypot(p.x - cx, p.y - cy));
+        const meanR = radii.reduce((a, b) => a + b, 0) / radii.length;
+
+        let totalAngle = 0;
+        for (let i = 1; i < pts.length; i++) {
+            const a1 = Math.atan2(pts[i - 1].y - cy, pts[i - 1].x - cx);
+            const a2 = Math.atan2(pts[i].y - cy, pts[i].x - cx);
+            let diff = a2 - a1;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            totalAngle += diff;
+        }
+
+        if (Math.abs(totalAngle) < Math.PI * 1.5) {
+            return { valid: false, reason: "Debes cerrar el círculo rodando 360°." };
+        }
+
+        const madR = radii.reduce((acc, r) => acc + Math.abs(r - meanR), 0) / radii.length;
+        const radialError = madR / meanR;
+        const roundnessScore = Math.max(0, 100 - radialError * 220);
+
+        const startEndDist = Math.hypot(pts[0].x - pts[pts.length - 1].x, pts[0].y - pts[pts.length - 1].y);
+        const closureScore = Math.max(0, 100 - (startEndDist / (meanR * 2)) * 250);
+
+        const wSpan = Math.max(1, maxX - minX);
+        const hSpan = Math.max(1, maxY - minY);
+        const aspectScore = Math.max(0, 100 - (1 - Math.min(wSpan, hSpan) / Math.max(wSpan, hSpan)) * 190);
+
+        const rawScore = roundnessScore * 0.55 + closureScore * 0.25 + aspectScore * 0.20;
+        const finalScore = Math.max(1.0, Math.min(99.9, Number(rawScore.toFixed(1))));
+
+        let reason = "";
+        if (finalScore >= 90) reason = "Pulso perfecto. Prácticamente simétrico.";
+        else if (finalScore >= 75) reason = "Muy buena redondez y buen cierre de trazo.";
+        else if (finalScore >= 55) reason = "Bastante decente, pero el radio varió en los laterales.";
+        else reason = "Salió irregular u ovalado. Intenta mantener una velocidad constante.";
+
+        return { valid: true, score: finalScore, reason };
+    }
+
+    function copyRecordMessage() {
+        if (lastAttemptScore === null) return;
+        const bestVal = cachedBestScore !== null ? cachedBestScore.toFixed(1) : lastAttemptScore.toFixed(1);
+        const msg = `⭕ *CÍRCULO PERFECTO*\n*${currentUserDisplay}* logró *${lastAttemptScore.toFixed(1)}%* en este intento (Récord: *${bestVal}%*).\n\n¿Superas mi porcentaje?`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(msg).then(() => alert("Copiado al portapapeles. Pégalo en WhatsApp.")).catch(() => fallbackCopy(msg));
+        } else {
+            fallbackCopy(msg);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        alert("Copiado al portapapeles. Pégalo en WhatsApp.");
+    }
+
+    canvas.addEventListener("mousedown", startStroke);
+    window.addEventListener("mousemove", moveStroke);
+    window.addEventListener("mouseup", endStroke);
+
+    canvas.addEventListener("touchstart", startStroke, { passive: false });
+    window.addEventListener("touchmove", moveStroke, { passive: false });
+    window.addEventListener("touchend", endStroke, { passive: false });
+    window.addEventListener("resize", resizeCanvas);
+
+    refreshLeaderboards();
+</script>
+
+</body>
+</html>
