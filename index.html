@@ -259,9 +259,9 @@
             color: var(--muted);
             font-size: 0.85rem;
             padding: 16px 0;
+            word-break: break-word;
         }
 
-        /* HUD & Área de Juego */
         .game-top {
             display: flex;
             justify-content: space-between;
@@ -376,7 +376,6 @@
 <body>
 
 <div class="app">
-    <!-- PANTALLA 1: REGISTRO Y TABLA -->
     <section id="screen-login" class="screen active">
         <span class="pill">Ranking Global en Vivo</span>
         <h1>CÍRCULO PERFECTO</h1>
@@ -399,7 +398,6 @@
         </div>
     </section>
 
-    <!-- PANTALLA 2: LIENZO LIMPIO DE JUEGO -->
     <section id="screen-game" class="screen">
         <div class="game-top">
             <div class="player-chip" id="hud-player">Jugador</div>
@@ -475,7 +473,7 @@
         );
         if (!res.ok) {
             const errText = await res.text();
-            throw new Error(errText || `Error ${res.status}`);
+            throw new Error(`HTTP ${res.status}: ${errText || "Sin detalle"}`);
         }
         return await res.json();
     }
@@ -487,7 +485,7 @@
         );
         if (!res.ok) {
             const errText = await res.text();
-            throw new Error(errText || `Error ${res.status}`);
+            throw new Error(`HTTP ${res.status}: ${errText || "Sin detalle"}`);
         }
         const data = await res.json();
         return data.length > 0 ? data[0] : null;
@@ -509,7 +507,7 @@
             });
             if (!res.ok) {
                 const errText = await res.text();
-                throw new Error(errText || `Error ${res.status}`);
+                throw new Error(`HTTP ${res.status}: ${errText || "Sin detalle"}`);
             }
             return { isNewRecord: true, bestScore: score };
         }
@@ -530,7 +528,7 @@
             );
             if (!res.ok) {
                 const errText = await res.text();
-                throw new Error(errText || `Error ${res.status}`);
+                throw new Error(`HTTP ${res.status}: ${errText || "Sin detalle"}`);
             }
             return { isNewRecord: true, bestScore: score };
         }
@@ -544,12 +542,12 @@
             renderLeaderboardInto(loginLeaderboardEl, loginCountEl, sorted);
             renderLeaderboardInto(gameLeaderboardEl, gameCountEl, sorted);
         } catch (err) {
-            const msg = `<div class="lb-empty">No se pudo cargar el ranking. Revisa la tabla <b>circle_records</b> y las políticas RLS en Supabase.</div>`;
-            loginCountEl.textContent = "Sin conexión";
-            gameCountEl.textContent = "Sin conexión";
+            const detail = err && err.message ? escapeHtml(err.message) : "Error de red";
+            const msg = `<div class="lb-empty">Sin conexión (${detail})</div>`;
+            loginCountEl.textContent = "Error";
+            gameCountEl.textContent = "Error";
             loginLeaderboardEl.innerHTML = msg;
             gameLeaderboardEl.innerHTML = msg;
-            console.error("Supabase leaderboard error:", err);
         }
     }
 
@@ -644,7 +642,6 @@
         drawCleanBoard();
     }
 
-    // Lienzo totalmente limpio: SIN GUÍAS CIRCULARES
     function drawCleanBoard() {
         const w = canvas.clientWidth;
         const h = canvas.clientHeight;
@@ -753,8 +750,8 @@
 
             await refreshLeaderboards();
         } catch (err) {
-            console.error("Error guardando récord:", err);
-            badgeWrap.innerHTML = `<span class="record-tag record-kept">Error al guardar en Supabase</span>`;
+            const detail = err && err.message ? escapeHtml(err.message) : "Error al guardar";
+            badgeWrap.innerHTML = `<span class="record-tag record-kept">${detail}</span>`;
         }
     }
 
